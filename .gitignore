@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
+<<<<<<< HEAD
 node_modules
 /.pnp
 .pnp.js
@@ -8,6 +9,18 @@ node_modules
 # production
 build
 
+=======
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+>>>>>>> 731b8319bcda839e9e42cb9476147a8434eaccf9
 # misc
 .DS_Store
 .env.local
@@ -18,5 +31,8 @@ build
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< HEAD
 
 .vscode
+=======
+>>>>>>> 731b8319bcda839e9e42cb9476147a8434eaccf9
