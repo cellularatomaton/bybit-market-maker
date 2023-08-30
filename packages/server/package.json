@@ -1,0 +1,25 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "A server that manages working orders and fills.",
+  "main": "strategy-server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node ./strategy-server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cellularatomaton/bybit-client.git"
+  },
+  "author": "Walter Moore",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/cellularatomaton/bybit-client/issues"
+  },
+  "homepage": "https://github.com/cellularatomaton/bybit-client#readme",
+  "dependencies": {
+    "bybit-api": "^3.7.2",
+    "dotenv": "^16.3.1",
+    "lodash.throttle": "^4.1.1"
+  }
+}
