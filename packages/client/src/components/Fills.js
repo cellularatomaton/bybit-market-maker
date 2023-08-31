@@ -28,42 +28,29 @@ const Fills = () => {
               <Tr>
                 <Th>category</Th>
                 <Th>symbol</Th>
-                <Th isNumeric>execFee</Th>
-                <Th>execId</Th>
+                <Th>side</Th>
                 <Th isNumeric>execPrice</Th>
                 <Th isNumeric>execQty</Th>
-                <Th>execType</Th>
-                <Th isNumeric>execValue</Th>
-                <Th>isMaker</Th>
-                <Th isNumeric>feeRate</Th>
-                <Th>orderId</Th>
-                <Th>orderLinkId</Th>
-                <Th isNumeric>orderPrice</Th>
-                <Th isNumeric>orderQuantity</Th>
-                <Th>orderType</Th>
-                <Th>side</Th>
+                <Th isNumeric>execFee</Th>
                 <Th>execTime</Th>
               </Tr>
             </Thead>
             <Tbody>
             {marketState.fills.map(fill => (
-              <Tr>
+              <Tr 
+                key={fill.execId} 
+                color={
+                  fill.side==='Buy' ? 
+                  'var(--chakra-colors-blue-400)' :
+                  'var(--chakra-colors-red-400)'
+                }
+              >
                 <Td>{fill.category}</Td>
                 <Td>{fill.symbol}</Td>
-                <Td isNumeric>{fill.execFee}</Td>
-                <Td>{fill.execId}</Td>
+                <Td>{fill.side}</Td>
                 <Td isNumeric>{fill.execPrice}</Td>
                 <Td isNumeric>{fill.execQty}</Td>
-                <Td>{fill.execType}</Td>
-                <Td isNumeric>{fill.execValue}</Td>
-                <Td>{fill.isMaker}</Td>
-                <Td isNumeric>{fill.feeRate}</Td>
-                <Td>{fill.orderId}</Td>
-                <Td>{fill.orderLinkId}</Td>
-                <Td isNumeric>{fill.orderPrice}</Td>
-                <Td isNumeric>{fill.orderQuantity}</Td>
-                <Td>{fill.orderType}</Td>
-                <Td>{fill.side}</Td>
+                <Td isNumeric>{fill.execFee}</Td>
                 <Td>{fill.execTime}</Td>
               </Tr>
             ))}

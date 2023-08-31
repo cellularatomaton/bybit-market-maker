@@ -30,12 +30,12 @@ const ControlPanel = ({websocket}) => {
     });
   };
   return (
-    <Card w='25vw' h='100%'>
+    <Card w='100%' h='100%'>
       <CardHeader>
         <HStack>
           <Heading size='md'>Trading:</Heading>
           {marketState.tradingEnabled && (
-            <Badge variant='solid' colorScheme='green'>
+            <Badge variant='solid' colorScheme='blue'>
               Enabled
             </Badge>
           )}
@@ -50,18 +50,18 @@ const ControlPanel = ({websocket}) => {
         <VStack>
           <Button
             w='100%' 
-            size='lg' 
+            size='md' 
             spacing='6' 
             variant='outline' 
-            colorScheme='green'
+            color='var(--chakra-colors-blue-400)'
             onClick={handleStart}
           >START</Button>
           <Button 
             w='100%' 
-            size='lg' 
+            size='md' 
             spacing='6' 
             variant='outline' 
-            colorScheme='red'
+            color='var(--chakra-colors-red-400)'
             onClick={handleStop}
           >STOP</Button>
         </VStack>

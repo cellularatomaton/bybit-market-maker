@@ -25,24 +25,23 @@ const MarketBook = () => {
       </CardHeader>
       <CardBody>
         {marketState.symbol !== 'NULL' &&(
-        <StatGroup w="50vw">
-          <Stat>
+        <StatGroup >
+          <Stat color='var(--chakra-colors-blue-400)'>
             <StatLabel>Best Bid</StatLabel>
-            <StatNumber>{marketState.bestBid[0]}</StatNumber>
-            <StatHelpText>
+            <StatNumber >{marketState.bestBid[0]}</StatNumber>
+            <StatHelpText >
               {/* <StatArrow type='increase' /> */}
               {marketState.bestBid[1]}
             </StatHelpText>
           </Stat>
-
-          <Stat>
-            <StatLabel>Best Ask</StatLabel>
-            <StatNumber>{marketState.bestAsk[0]}</StatNumber>
-            <StatHelpText>
-              {/* <StatArrow type='decrease' /> */}
-              {marketState.bestAsk[1]}
-            </StatHelpText>
-          </Stat>
+          <Stat color='var(--chakra-colors-red-400)'>
+              <StatLabel>Best Ask</StatLabel>
+              <StatNumber>{marketState.bestAsk[0]}</StatNumber>
+              <StatHelpText >
+                {/* <StatArrow type='decrease' /> */}
+                {marketState.bestAsk[1]}
+              </StatHelpText>
+            </Stat>
         </StatGroup>
         )}
         {marketState.symbol === 'NULL' && (

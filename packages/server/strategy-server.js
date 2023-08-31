@@ -17,8 +17,8 @@ dotEnv.config();
 console.log(JSON.stringify(process.env));
 const category = 'spot';
 const symbol = 'BTCUSDT';
-const orderSize = 0.3;
-const ticksOffBest = 1;
+const orderSize = 0.01;
+const ticksBack = 1;
 
 const bybitRest = getRestApi();
 let commands = null;
@@ -73,34 +73,61 @@ const configureStrategy = (then) => {
       const symbolInfo = infos.filter(i => {
         return i.symbol === symbol;
       })[0];
-      const tickSize = parseFloat(symbolInfo.priceFilter.tickSize);
+
+      const tickPrecision = symbolInfo.priceFilter.tickSize.split('.')[1].length
+      const tickSize = parseFloat(symbolInfo.priceFilter.tickSize).toFixed(tickPrecision);
       
       const startStrategy = () => {
-        if(getTradingEnabled()){
-          const {ourBid, ourAsk} = getOrderLevels({tickSize, ticksOffBest});
-          bybitRest.placeBid({symbol, orderSize, ourBid, then: ()=>{} });
-          bybitRest.placeAsk({symbol, orderSize, ourAsk, then: ()=>{} });
+        console.log(`Starting Strategy.`);
+        const tradingEnabled = getTradingEnabled();
+        console.log(`Trading Enabled: ${tradingEnabled}`);
+        if(tradingEnabled){
+          const {ourBid, ourAsk} = getOrderLevels({
+            tickSize,
+            tickPrecision, 
+            ticksBack
+          });
+          bybitRest.placeBid({
+            category,
+            symbol, 
+            qty: orderSize, 
+            price: ourBid, 
+            then: ()=>{} 
+          });
+          bybitRest.placeAsk({
+            category,
+            symbol, 
+            qty: orderSize, 
+            price: ourAsk, 
+            then: ()=>{} 
+          });
         }
       };
 
       const updateStrategy = () => {
-        // Cancell All And Reload
+        console.log(`Updating Strategy.`);
         bybitRest.cancelAllOpenOrders({
           category,
           symbol,
           then: ()=> {
+            console.log(`Restarting Strategy.`);
             startStrategy();
           }
         });
       };
 
       const stopStrategy = () => {
-        // Cancell All And Reload
+        console.log(`Stopping Strategy.`);
         bybitRest.cancelAllOpenOrders({
           category,
           symbol,
           then: ()=> {}
         });
+      };
+
+      commands = {
+        startStrategy,
+        stopStrategy
       };
 
       const handleWebSocketMessage = (payload) => {
@@ -141,10 +168,7 @@ const configureStrategy = (then) => {
         handleWebSocketMessage,
       );
       bybitSocket.subscribeV5([`orderbook.1.${symbol}`, 'execution', 'order'], 'spot');
-      commands = {
-        startStrategy,
-        stopStrategy
-      };
+      
     }
   })
   

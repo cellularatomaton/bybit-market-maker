@@ -1,25 +1,28 @@
 import { RestClientV5 } from 'bybit-api';
 
-const API_KEY = process.env.REACT_APP_BYBIT_API_KEY;
-const API_SECRET = process.env.REACT_APP_BYBIT_PRIVATE_KEY;
-
-const useTestnet = true;
+const API_KEY = process.env.BYBIT_API_KEY;
+const API_SECRET = process.env.BYBIT_PRIVATE_KEY;
 
 const client = new RestClientV5({
     key: API_KEY,
     secret: API_SECRET,
-    testnet: useTestnet
-  }
+    testnet: true
+  },
 );
 
 const getRestApi = () => {
   return {
     getInstrumentInfo: ({category, symbol, then}) => {
-      client.getInstrumentsInfo({
+      const infoRequest = {
         category,
         symbol
-      })
+      };
+      console.log(`Requesting Info:`);
+      console.dir(infoRequest);
+      client.getInstrumentsInfo(infoRequest)
       .then(response => {
+        console.log(`Handling Info Response:`);
+        console.dir(response);
         then(response);
       })
       .catch(error => {
@@ -27,40 +30,61 @@ const getRestApi = () => {
       });
     },
     getOpenOrders: ({category, symbol, then}) => {
-      client.getActiveOrders({
+      const activeOrderRequest = {
         category,
         symbol
-      }).then(response => {
+      };
+      console.log(`Requesting Active Orders:`);
+      console.dir(activeOrderRequest);
+      client.getActiveOrders(activeOrderRequest).then(response => {
+          console.log(`Handling Active Orders Response:`);
+          console.dir(response);
           then(response);
         })
-        .catch(rror => {
+        .catch(error => {
           console.error('Error Getting Open Orders:', error);
         })
     },
-    placeBid: ({symbol, qty, price, then}) => {
-      client.submitOrder({
-        symbol: symbol,
+    placeBid: ({category, symbol, qty, price, then}) => {
+      const bid = {
+        category,
+        symbol,
+        qty: `${qty}`,
+        price: `${price}`,
         side: 'Buy',
         orderType: 'Limit',
-        qty: qty,
-        price: price,
-        timeInForce: 'GTC'
-      }).then(response => {
+        timeInForce: 'PostOnly',
+        isLeverage: 0
+      };
+      console.log(`Placing Bid:`);
+      console.dir(bid);
+      client.submitOrder(bid)
+        .then(response => {
+          console.log(`Handling Bid Response:`);
+          console.dir(response);
           then(response);
         })
         .catch(error => {
           console.error('Error Placing Bid:', error);
         });
     },
-    placeAsk: ({symbol, qty, price, then}) => {
-      client.submitOrder({
-        symbol: symbol,
+    placeAsk: ({category, symbol, qty, price, then}) => {
+      const ask = {
+        category,
+        symbol,
+        qty: `${qty}`,
+        price: `${price}`,
         side: 'Sell',
         orderType: 'Limit',
-        qty: qty,
-        price: price,
-        timeInForce: 'GTC'
-      }).then(response => {
+        timeInForce: 'PostOnly',
+        isLeverage: 0
+      };
+      console.log(`Placing Ask:`);
+      console.dir(ask);
+      client.submitOrder(ask)
+        .then(response => {
+          console.log(`Handling Ask Response:`);
+          console.dir(response);
           then(response);
         })
         .catch(error => {
@@ -68,10 +92,18 @@ const getRestApi = () => {
         });
     },
     cancelAllOpenOrders: ({category, symbol, then}) => {
+      const info = {
+        category,
+        symbol
+      };
+      console.log(`Cancel All:`);
+      console.dir(info);
       client.cancelAllOrders({
         category,
         symbol
       }).then(response => {
+          console.log(`Cancel All Response:`);
+          console.dir(response);
           then(response);
         })
         .catch(error => {

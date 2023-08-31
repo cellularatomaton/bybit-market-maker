@@ -26,8 +26,9 @@ function App() {
 
   useEffect(()=>{
     
-    //https://bybit-strategy-m4ovodbsva-zf.a.run.app
-    const ws = new WebSocket('ws://bybit-strategy-m4ovodbsva-zf.a.run.app');
+    //ws://localhost:8080
+    const WEBSOCKET_HOST = process.env.REACT_APP_WEBSOCKET_HOST;
+    const ws = new WebSocket(WEBSOCKET_HOST);
     
     ws.addEventListener('open', () => {
       console.log('Connected to local WebSocket server');
@@ -62,15 +63,15 @@ function App() {
         >
           <ColorModeSwitcher alignSelf='flex-end'/>
           <Flex direction='row' align="stretch" grow="1" gap='4'>
-            <Flex direction='column' w='70vw' align="stretch" gap='4'>
+            <Flex direction='column' w='44vw' align="stretch" gap='4'>
               <Flex direction='row' gap='4'>
-                <ControlPanel  websocket={webSocket}/>
-                <MarketBook />
+                <ControlPanel w='5vw' websocket={webSocket}/>
+                <MarketBook  />
               </Flex>
-              <Fills />
-            </Flex>
-            <Flex direction='column' w='25vw' gap='4'>
               <Orders/>
+            </Flex>
+            <Flex direction='column' w='44vw' gap='4'>
+              <Fills />
             </Flex>
           </Flex>
         </Flex>
