@@ -1,10 +1,19 @@
 const marketState = {
+  tradingEnabled: false,
   symbol: 'NULL',
   bestBid: [`${Number.NEGATIVE_INFINITY}`, '0'],
   bestAsk: [`${Number.POSITIVE_INFINITY}`, '0'],
   orders: [],
   fills: [],
 };
+
+export const getTradingEnabled = () => {
+  return marketState.tradingEnabled;
+}
+
+export const setTradingEnabled = (tradingEnabled) => {
+  marketState.tradingEnabled = tradingEnabled;
+}
 
 export const getOrderLevels = ({tickSize, ticksBack}) => {
   const bestBid = parseFloat(marketState.bestBid[0]);
@@ -14,37 +23,44 @@ export const getOrderLevels = ({tickSize, ticksBack}) => {
   return {
     ourBid,
     ourAsk
-  }
+  };
 };
 
 export const handleSnapshot = (snapshot) => {
-  marketState.symbol = snapshot.data.s;
-  marketState.bestBid = snapshot.data.b[0];
-  marketState.bestAsk = snapshot.data.a[0];
+  marketState.symbol = snapshot.s;
+  marketState.bestBid = snapshot.b[0];
+  marketState.bestAsk = snapshot.a[0];
   return marketState;
 };
 
 export const handleDelta = (delta) => {
-  if(delta.data.b.length){
-    marketState.bestBid = delta.data.b[0];
+  if(delta.b.length){
+    marketState.bestBid = delta.b[0];
   }
-  if(delta.data.a.length){
-    marketState.bestAsk = delta.data.a[0];
+  if(delta.a.length){
+    marketState.bestAsk = delta.a[0];
   }
   return marketState;
 };
 
-export const handleFill = (fill) => {
-  marketState.fills.push(fill);
+export const handleFills = (fills) => {
+  marketState.fills = [fills, marketState.fills];
 };
 
-export const handleOrder = (order) => {
-  marketState.orders.push(order);
+export const handleOrders = (orders) => {
+  const incommingOrderIds = orders.map((o) => o.orderId);
+  const unaffectedOrders = marketState.filter(o => {
+    return !incommingOrderIds.includes(o.orderId)
+  });
+  marketState.orders = [orders, unaffectedOrders];
 }
 
 export default {
   handleDelta,
-  handleFill,
-  handleOrder,
+  handleFills,
+  handleOrders,
   handleSnapshot,
+  getOrderLevels,
+  getTradingEnabled,
+  setTradingEnabled
 }

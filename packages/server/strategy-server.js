@@ -1,11 +1,29 @@
 import dotEnv from 'dotenv';
 import createByBitSocketConnection from './bybit-socket-service.js';
-import { handleDelta, handleSnapshot } from './strategy-state.js';
+import getRestApi from './bybit-rest-api-service.js';
+import {
+  handleDelta, 
+  handleSnapshot, 
+  handleOrders, 
+  handleFills,
+  getOrderLevels,
+  getTradingEnabled,
+  setTradingEnabled
+} from './strategy-state.js';
 import WebSocket from 'ws';
 import throttle from 'lodash.throttle';
 
 dotEnv.config();
+console.log(JSON.stringify(process.env));
+const category = 'spot';
+const symbol = 'BTCUSDT';
+const orderSize = 0.3;
+const ticksOffBest = 1;
 
+const bybitRest = getRestApi();
+let commands = null;
+
+// Create the WebSocket for the UI:
 const uiWebsocketServer = new WebSocket.Server({ port: 8080 });
 uiWebsocketServer.on('connection', (uiWebsocket) => {
   console.log('Client connected');
@@ -13,7 +31,16 @@ uiWebsocketServer.on('connection', (uiWebsocket) => {
   // Handle incoming messages
   uiWebsocket.on('message', (message) => {
       console.log(`Received: ${message}`);
-      // The UI is Read Only.
+      if(commands){
+        const json = JSON.parse(message);
+        if(json.command === 'START'){
+          setTradingEnabled(true);
+          commands.startStrategy();
+        }else if(json.command === 'STOP'){
+          setTradingEnabled(false);
+          commands.stopStrategy();
+        }
+      }
   });
 
   // Handle disconnection
@@ -36,32 +63,92 @@ const updateUi = (marketState) => {
   }, 100)(json);
 };
 
-const setupByBit = () => {
-  const handleWebSocketMessage = (payload) => {
-    // Route:
-    if(payload.type === 'snapshot'){
-      console.log('Websocket Handler: "snapshot"');
-      // console.dir(payload);
-      console.log(JSON.stringify(payload));
-      const marketState = handleSnapshot(payload);
-      updateUi(marketState);
-    }
-    else if(payload.type === 'delta'){
-      const marketState = handleDelta(payload);
-      updateUi(marketState);
-    }
-  };
-  
-  const handleWebSocketOpen = (bybit, key) => {
-    console.log('Websocket Handler: "open"');
-  };
+// Configure Strategy:
+const configureStrategy = (then) => {
+  bybitRest.getInstrumentInfo({
+    category,
+    symbol,
+    then: (infoResponse) => {
+      const infos = infoResponse.result.list;
+      const symbolInfo = infos.filter(i => {
+        return i.symbol === symbol;
+      })[0];
+      const tickSize = parseFloat(symbolInfo.priceFilter.tickSize);
+      
+      const startStrategy = () => {
+        if(getTradingEnabled()){
+          const {ourBid, ourAsk} = getOrderLevels({tickSize, ticksOffBest});
+          bybitRest.placeBid({symbol, orderSize, ourBid, then: ()=>{} });
+          bybitRest.placeAsk({symbol, orderSize, ourAsk, then: ()=>{} });
+        }
+      };
 
-  const bybitSocket = createByBitSocketConnection(
-    handleWebSocketOpen,
-    handleWebSocketMessage,
-  );
-  bybitSocket.subscribeV5(['orderbook.1.BTCUSDT', 'execution', 'order'], 'spot');
+      const updateStrategy = () => {
+        // Cancell All And Reload
+        bybitRest.cancelAllOpenOrders({
+          category,
+          symbol,
+          then: ()=> {
+            startStrategy();
+          }
+        });
+      };
+
+      const stopStrategy = () => {
+        // Cancell All And Reload
+        bybitRest.cancelAllOpenOrders({
+          category,
+          symbol,
+          then: ()=> {}
+        });
+      };
+
+      const handleWebSocketMessage = (payload) => {
+        // Route:
+        const topic = payload.topic;
+        if(topic==='order'){
+          // Route Order
+          console.log(JSON.stringify(payload));
+          if(payload.data.some(o => o.orderStatus === 'Filled')){
+            updateStrategy();
+          }
+          handleOrders(payload.data);
+        }else if(topic === 'execution'){
+          // Route Fill
+          console.log(JSON.stringify(payload));
+          handleFills(payload.data);
+        }else{
+          // Route Market Update
+          const type = payload.type;
+          if(type === 'snapshot'){
+            console.log(JSON.stringify(payload));
+            const marketState = handleSnapshot(payload.data);
+            updateUi(marketState);
+          }
+          else if(type === 'delta'){
+            const marketState = handleDelta(payload.data);
+            updateUi(marketState);
+          }
+        }
+      };
+      
+      const handleWebSocketOpen = (bybit, key) => {
+        console.log('Websocket Handler: "open"');
+      };
+    
+      const bybitSocket = createByBitSocketConnection(
+        handleWebSocketOpen,
+        handleWebSocketMessage,
+      );
+      bybitSocket.subscribeV5([`orderbook.1.${symbol}`, 'execution', 'order'], 'spot');
+      commands = {
+        startStrategy,
+        stopStrategy
+      };
+    }
+  })
+  
 };
 
-setupByBit();
+configureStrategy();
 

@@ -1,8 +1,10 @@
 import { WebsocketClient } from 'bybit-api';
 
+const API_KEY = process.env.REACT_APP_BYBIT_API_KEY;
+const PRIVATE_KEY = process.env.REACT_APP_BYBIT_PRIVATE_KEY;
+
 const createByBitSocketConnection = (onOpenCallback, onMessageCallback) => {
-  const API_KEY = process.env.REACT_APP_BYBIT_API_KEY;
-  const PRIVATE_KEY = process.env.REACT_APP_BYBIT_PRIVATE_KEY;
+  
   const wsConfig = {
     key: API_KEY,
     secret: PRIVATE_KEY,
